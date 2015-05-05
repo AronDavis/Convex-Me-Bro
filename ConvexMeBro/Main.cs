@@ -78,41 +78,55 @@ namespace ConvexMeBro
 
             List<PointF> main = new List<PointF>(shape);
 
-            bool go = true;
-            while (go && main.Count > 3)
+            int last = 0;
+            bool set = false;
+            bool positive = false;
+
+            for (int i = 0; i < shape.Count; i++)
             {
-                go = false;
+                PointF p1 = shape[i];
+                PointF p2 = shape[(i + 1) % shape.Count];
+                PointF p3 = shape[(i + 2) % shape.Count];
 
-                bool set = false;
-                bool positive = false;
-                for (int i = 0; i < main.Count; i++)
+                PointF d1 = new PointF(p2.X - p1.X, p2.Y - p1.Y);
+                PointF d2 = new PointF(p3.X - p2.X, p3.Y - p2.Y);
+
+                float cross = Helper.CrossProduct(d1, d2);
+
+                if (!set)
                 {
-                    PointF p1 = main[i];
-                    PointF p2 = main[(i + 1) % main.Count];
-                    PointF p3 = main[(i + 2) % main.Count];
-
-                    PointF d1 = new PointF(p2.X - p1.X, p2.Y - p1.Y);
-                    PointF d2 = new PointF(p3.X - p2.X, p3.Y - p2.Y);
-
-                    float cross = Helper.CrossProduct(d1, d2);
-
-                    if (!set)
+                    if (cross != 0) set = true;
+                    positive = (cross > 0);
+                }
+                else if (positive != (cross > 0) && cross != 0)
+                {
+                    if(i - last > 3)
                     {
-                        if (cross != 0) set = true;
-                        positive = (cross > 0);
-                    }
-                    else if (positive != (cross > 0) && cross != 0)
-                    {
-                        output.Add(new List<PointF>() { p2, p3, main[(i + 3) % main.Count] });
-                        main.Remove(p3);
+                        List<PointF> points = new List<PointF>(shape.GetRange(last, i - last));
+                        output.Add(points);
 
-                        go = true;
-                        break;
+                        for (int j = 1; j < points.Count - 1; j++)
+                        {
+                            if (main.Contains(points[j])) main.Remove(points[j]);
+                        }
+                        
                     }
+                    output.Add(new List<PointF>() { shape[(i - 1 + shape.Count) % shape.Count], p1, p2 });
+                    if (main.Contains(p1)) main.Remove(p1);
+                    last = i;
                 }
             }
 
-            output.Add(main);
+            if(main.Count >= 3) output.Add(main);
+
+            for (int i = output.Count - 1; i >= 0; i--)
+            {
+                if (!isConvex(output[i]))
+                {
+                    output.AddRange(MakeConvex(output[i]));
+                    output.RemoveAt(i);
+                }
+            }
 
             return output;
         }
