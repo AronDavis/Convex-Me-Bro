@@ -81,6 +81,7 @@ namespace ConvexMeBro
             int last = 0;
             bool set = false;
             bool positive = false;
+            bool needLast = false;
 
             for (int i = 0; i < shape.Count; i++)
             {
@@ -98,26 +99,35 @@ namespace ConvexMeBro
                     if (cross != 0) set = true;
                     positive = (cross > 0);
                 }
-                else if (positive != (cross > 0) && cross != 0)
+                else if (positive != (cross > 0) && cross != 0) //if it turns the other way
                 {
                     if(i - last > 3)
                     {
                         List<PointF> points = new List<PointF>(shape.GetRange(last, i - last));
-                        output.Add(points);
 
-                        for (int j = 1; j < points.Count - 1; j++)
+                        //ASSUMES THAT ALL POINTS ARE CLOCKWISE
+                        if (allPositive(points))
                         {
-                            if (main.Contains(points[j])) main.Remove(points[j]);
+                            output.Add(points);
+
+                            for (int j = 1; j < points.Count - 1; j++)
+                            {
+                                if (main.Contains(points[j])) main.Remove(points[j]);
+                            }
                         }
                         
                     }
+
                     output.Add(new List<PointF>() { shape[(i - 1 + shape.Count) % shape.Count], p1, p2 });
                     if (main.Contains(p1)) main.Remove(p1);
                     last = i;
                 }
             }
 
-            if(main.Count >= 3) output.Add(main);
+            if (main.Count >= 3)
+            {
+                output.Add(main);
+            }
 
             for (int i = output.Count - 1; i >= 0; i--)
             {
@@ -129,6 +139,33 @@ namespace ConvexMeBro
             }
 
             return output;
+        }
+
+        private bool allPositive(List<PointF> shape)
+        {
+            bool set = false;
+            bool positive = false;
+            for (int i = 0; i < shape.Count; i++)
+            {
+                PointF p1 = shape[i];
+                PointF p2 = shape[(i + 1) % shape.Count];
+                PointF p3 = shape[(i + 2) % shape.Count];
+
+                PointF d1 = new PointF(p2.X - p1.X, p2.Y - p1.Y);
+                PointF d2 = new PointF(p3.X - p2.X, p3.Y - p2.Y);
+
+                float cross = Helper.CrossProduct(d1, d2);
+
+                if (!set)
+                {
+                    if (cross != 0) set = true;
+                    
+                    positive = (cross > 0);
+                }
+                else if (positive != (cross > 0) && cross != 0) return false;
+            }
+
+            return positive;
         }
 
 
