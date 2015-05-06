@@ -111,9 +111,10 @@ namespace ConvexMeBro
 
                 if (cross < 0) //if it turns counter-clockwise
                 {
+                    List<PointF> points;
                     if(i - last > 3)
                     {
-                        List<PointF> points = new List<PointF>(shape.GetRange(last, i - last));
+                        points = new List<PointF>(shape.GetRange(last, i - last));
 
                         //Only consider points that are within our shape (CC shapes will be outside).
                         if (isClockWiseConvex(points))
@@ -129,15 +130,19 @@ namespace ConvexMeBro
                         }
                         
                     }
+                    points = new List<PointF>() { shape[(i - 1 + shape.Count) % shape.Count], p1, p2 };
+                    
+                    if (isClockWiseConvex(points))
+                    {
+                        //add the "ear"
+                        output.Add(points);
 
-                    //add the "ear"
-                    output.Add(new List<PointF>() { shape[(i - 1 + shape.Count) % shape.Count], p1, p2 });
+                        //remove the trouble point from main
+                        if (main.Contains(p1)) main.Remove(p1);
 
-                    //remove the trouble point from main
-                    if (main.Contains(p1)) main.Remove(p1);
-
-                    //mark last so we can later add the points that weren't troublesome
-                    last = i;
+                        //mark last so we can later add the points that weren't troublesome
+                        last = i;
+                    }
                 }
             }
 
