@@ -116,7 +116,7 @@ namespace ConvexMeBro
                     {
                         points = new List<PointF>(shape.GetRange(last, i - last));
 
-                        //Only consider points that are within our shape (CC shapes will be outside).
+                        //Only consider points that are within our shape (CC shapes will be outside)
                         if (isClockWiseConvex(points))
                         {
                             //add the points we missed (they should all have clockwise turns)
@@ -130,8 +130,9 @@ namespace ConvexMeBro
                         }
                         
                     }
+
                     points = new List<PointF>() { shape[(i - 1 + shape.Count) % shape.Count], p1, p2 };
-                    
+                    //Only consider points that are within our shape (CC shapes will be outside)
                     if (isClockWiseConvex(points))
                     {
                         //add the "ear"
