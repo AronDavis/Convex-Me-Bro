@@ -42,6 +42,28 @@ namespace ConvexMeBro
 
                 if (hasDuplicates(convex)) MessageBox.Show("DUPLICATES FOUND");
 
+                bool loop = true;
+                while (loop)
+                {
+                    loop = false;
+                    for (int i = 0; i < convex.Count; i++)
+                    {
+                        for (int j = i + 1; j < convex.Count; j++)
+                        {
+                            List<PointF> join;
+                            if (ConvexJoin(convex[i], convex[j], out join))
+                            {
+                                convex.Remove(convex[j]);
+                                convex.Remove(convex[i]);
+                                convex.Add(join);
+                                loop = true;
+                                break;
+                            }
+                        }
+                        if (loop) break;
+                    }
+                }
+
                 foreach (List<PointF> points in convex)
                 {
                     DrawLines(points, Color.Black);
@@ -221,6 +243,48 @@ namespace ConvexMeBro
             }
 
             return true;
+        }
+
+        public bool ConvexJoin(List<PointF> shape1, List<PointF> shape2, out List<PointF> join)
+        {
+            join = null;
+            for (int i = 0; i < shape1.Count; i++)
+            {
+                int i2 = (i + 1) % shape1.Count;
+                if (shape2.Contains(shape1[i]) && shape2.Contains(shape1[i2]))
+                {
+                    int index1 = shape2.IndexOf(shape1[i]);
+                    int index2 = shape2.IndexOf(shape1[i2]);
+
+                    if (index1 == (index2 + 1) % shape2.Count)
+                    {
+                        Join(shape1, i, i2, shape2, index1, index2, out join);
+                        return isClockWiseConvex(join);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Call only from ConvexJoin
+        /// </summary>
+        private void Join(List<PointF> shape1, int i1, int i2, List<PointF> shape2, int i3, int i4, out List<PointF> join)
+        {
+            join = new List<PointF>();
+
+            //i2 to i1
+            for (int i = i2; i != i1; i = (i + 1) % shape1.Count)
+            {
+                join.Add(shape1[i]);
+            }
+
+            //i3 to i4
+            for (int i = i3; i != i4; i = (i + 1) % shape2.Count)
+            {
+                join.Add(shape2[i]);
+            }
         }
     }
 }
